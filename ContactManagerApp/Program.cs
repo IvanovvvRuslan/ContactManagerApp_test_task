@@ -1,5 +1,7 @@
 using ContactManagerApp.Data;
+using ContactManagerApp.Validators;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddValidatorsFromAssemblyContaining<ContactValidator>();
 
 var app = builder.Build();
 
