@@ -1,4 +1,5 @@
 using ContactManagerApp.Data;
+using ContactManagerApp.Exceptions;
 using ContactManagerApp.Validators;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
@@ -24,6 +25,8 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseRouting();
