@@ -9,6 +9,7 @@ namespace ContactManagerApp.Services;
 public interface IContactService
 {
     Task<PagedResult<ContactDto>> GetPagedAsync(PaginationRequest request);
+    Task<ContactDto> GetByIdTrackedAsync(int id);
     Task CreateAsync(ContactDto contactDto);
     Task UpdateAsync(int id, ContactDto contactDto);
     Task DeleteAsync(int id);
@@ -47,6 +48,22 @@ public class ContactService:  IContactService
             result.PageNumber, result.Items.Count);
         
         return result;
+    }
+
+    public async Task<ContactDto> GetByIdTrackedAsync(int id)
+    {
+        _logger.LogDebug("Starting GetByAsync: id {Id}", id);
+        
+        var contact = await _repository.GetByIdTrackedAsync(id);
+
+        if (contact == null)
+            throw new NotFoundException("Contact not found");
+        
+        _logger.LogInformation("Successfully retrieved contact with id {Id}", id);
+        
+        var contactDto = contact.Adapt<ContactDto>();
+        
+        return contactDto;
     }
 
     public async Task CreateAsync(ContactDto contactDto)

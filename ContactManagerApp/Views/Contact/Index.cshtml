@@ -1,0 +1,56 @@
+@model PagedResult<ContactManagerApp.DTO.ContactDto>
+
+@{
+    ViewData["Title"] = "Contacts";
+}
+
+<h1>Contacts</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Birth Date</th>
+        <th>Married</th>
+        <th>Phone</th>
+        <th>Salary</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var contact in Model.Items)
+    {
+        <tr>
+            <td>@contact.Name</td>
+            <td>@contact.BirthDate.ToShortDateString()</td>
+            <td>@(contact.IsMarried ? "Yes" : "No")</td>
+            <td>@contact.PhoneNumber</td>
+            <td>@contact.Salary.ToString("C")</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@contact.Id">Edit</a> |
+                <form asp-action="Delete" asp-route-id="@contact.Id" method="post" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Are you sure?');">Delete</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<div style="margin-top:20px;">
+    @if (Model.PageNumber > 1)
+    {
+        <a asp-action="Index" asp-route-PageNumber="@(Model.PageNumber - 1)" asp-route-PageSize="@Model.PageSize">Previous</a>
+    }
+
+    <span> Page @Model.PageNumber of @Model.TotalPages </span>
+
+    @if (Model.PageNumber < Model.TotalPages)
+    {
+        <a asp-action="Index" asp-route-PageNumber="@(Model.PageNumber + 1)" asp-route-PageSize="@Model.PageSize">Next</a>
+    }
+</div>
+
+<div style="margin-top:10px;">
+    <a asp-action="Create">Create New Contact</a>
+</div>

@@ -6,9 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ContactManagerApp.Controllers;
 
-[ApiController]
-[Route("contacts")]
-public class ContactController: ControllerBase
+public class ContactController: Controller
 {
     private readonly IContactService _contactService;
     private readonly ILogger<ContactController> _logger;
@@ -21,9 +19,7 @@ public class ContactController: ControllerBase
         _validator = validator;
     }
 
-    [HttpGet]
-    public async Task<ActionResult<PagedResult<ContactDto>>> GetAllPagedAsync(
-        [FromQuery] PaginationRequest request)
+   public async Task<IActionResult> Index(PaginationRequest request)
     {
         _logger.LogInformation("Retrieving paged announcements: Page {PageNumber}, Size {PageSize}", 
             request.PageNumber, request.PageSize);
@@ -32,22 +28,27 @@ public class ContactController: ControllerBase
         
         _logger.LogInformation("Successfully retrieved {TotalCount} contacts", contacts.TotalCount);
         
-        return Ok(contacts);
+        return View(contacts);
     }
 
+    public IActionResult Create()
+    {
+        return View();
+    }
+   
     [HttpPost]
-    public async Task<IActionResult> CreateAsync([FromBody]ContactDto contactDto)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(ContactDto contactDto)
     {
         var result = await _validator.ValidateAsync(contactDto);
 
         if (!result.IsValid)
         {
-            return BadRequest(result.Errors.Select(x => new
-                {
-                    field = x.ErrorMessage,
-                    message = x.ErrorMessage
-                })
-            );
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+            }
+            return View(contactDto);
         }
         
         _logger.LogInformation("Creating a new contact with name {Name}",  contactDto.Name);
@@ -56,22 +57,28 @@ public class ContactController: ControllerBase
         
         _logger.LogInformation("Successfully created a new contact with name {Name}",  contactDto.Name);
         
-        return Ok("Contact created");
+        return RedirectToAction(nameof(Index));
     }
 
-    [HttpPatch("{id}")]
-    public async Task<IActionResult> UpdateAsync([FromRoute] int id, [FromBody] ContactDto contactDto)
+    public async Task<IActionResult> Edit(int id)
+    {
+        var contact = await _contactService.GetByIdTrackedAsync(id);
+        return View(contact);
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, ContactDto contactDto)
     {
         var result = await _validator.ValidateAsync(contactDto);
 
         if (!result.IsValid)
         {
-            return BadRequest(result.Errors.Select(x => new
-                {
-                    field = x.ErrorMessage,
-                    message = x.ErrorMessage
-                })
-            );
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+            }
+            return View(contactDto);
         }
         
         _logger.LogInformation("Updating a contact with name {Name}",  contactDto.Name);
@@ -80,11 +87,12 @@ public class ContactController: ControllerBase
         
         _logger.LogInformation("Successfully updated a contact with name {Name}", contactDto.Name);
         
-        return Ok("Contact updated");
+        return RedirectToAction(nameof(Index));
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteAsync([FromRoute] int id)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
     {
         _logger.LogInformation("Deleting a contact with id {Id}", id);
         
@@ -92,6 +100,6 @@ public class ContactController: ControllerBase
         
         _logger.LogInformation("Successfully deleted a contact with id {Id}", id);
         
-        return Ok("Contact deleted");
+        return RedirectToAction(nameof(Index));
     }
 }
