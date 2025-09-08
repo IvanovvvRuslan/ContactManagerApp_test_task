@@ -55,4 +55,16 @@ public class ContactController: ControllerBase
         
         return Ok("Contact updated");
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteAsync([FromRoute] int id)
+    {
+        _logger.LogInformation("Deleting a contact with id {Id}", id);
+        
+        await _contactService.DeleteAsync(id);
+        
+        _logger.LogInformation("Successfully deleted a contact with id {Id}", id);
+        
+        return Ok("Contact deleted");
+    }
 }

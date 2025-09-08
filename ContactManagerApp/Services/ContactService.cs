@@ -11,7 +11,7 @@ public interface IContactService
     Task<PagedResult<ContactDto>> GetPagedAsync(PaginationRequest request);
     Task CreateAsync(ContactDto contactDto);
     Task UpdateAsync(int id, ContactDto contactDto);
-    
+    Task DeleteAsync(int id);
 }
 
 public class ContactService:  IContactService
@@ -74,7 +74,7 @@ public class ContactService:  IContactService
     {
         _logger.LogDebug("Starting UpdateAsync for contact with Id {Id}", id);
 
-        var oldContact = await _repository.GetByIdTracked(id);
+        var oldContact = await _repository.GetByIdTrackedAsync(id);
 
         if (oldContact == null)
             throw new NotFoundException("Contact not found");
@@ -92,5 +92,22 @@ public class ContactService:  IContactService
         await _repository.SaveChangesAsync();
         
         _logger.LogInformation("Successfully updated contact with Id {Id}", id);
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        _logger.LogDebug("Starting DeleteAsync for contact with Id {Id}", id);
+        
+        var contact = await _repository.GetByIdAsync(id);
+        
+        if (contact == null)
+            throw new NotFoundException("Contact not found");
+        
+        _logger.LogDebug("Found contact with Id {Id}", id);
+        
+        _repository.Delete(contact);
+        await _repository.SaveChangesAsync();
+        
+        _logger.LogInformation("Successfully deleted contact with Id {Id}", id);
     }
 }

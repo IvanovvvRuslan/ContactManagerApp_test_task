@@ -7,9 +7,10 @@ namespace ContactManagerApp.Repository;
 public interface IContactRepository
 {
     Task<PagedResult<Contact>> GetPagedAsync(PaginationRequest request);
-    Task<Contact?> GetByIdTracked(int id);
+    Task<Contact?> GetByIdAsync(int id);
+    Task<Contact?> GetByIdTrackedAsync(int id);
     Task CreateAsync(Contact contact);
-    
+    Task Delete (Contact contact);
     Task SaveChangesAsync();
     
 }
@@ -43,7 +44,16 @@ public class ContactRepository: IContactRepository
         };
     }
 
-    public async Task<Contact?> GetByIdTracked(int id)
+    public async Task<Contact?> GetByIdAsync(int id)
+    {
+        var contact = await _context.Contacts
+            .AsNoTracking()
+            .FirstOrDefaultAsync(contact => contact.Id == id);
+        
+        return contact;
+    }
+
+    public async Task<Contact?> GetByIdTrackedAsync(int id)
     {
         var contact = await _context.Contacts.FirstOrDefaultAsync(contact => contact.Id == id);
         
@@ -55,8 +65,15 @@ public class ContactRepository: IContactRepository
         await _context.Contacts.AddAsync(contact);
     }
 
+    public Task Delete(Contact contact)
+    {
+        _context.Contacts.Remove(contact);
+        
+        return Task.CompletedTask;
+    }
+
     public async Task SaveChangesAsync()
     {
-        _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
 }

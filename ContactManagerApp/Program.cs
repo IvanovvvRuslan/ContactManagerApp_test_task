@@ -1,4 +1,5 @@
 using ContactManagerApp.Data;
+using ContactManagerApp.DTO;
 using ContactManagerApp.Exceptions;
 using ContactManagerApp.Repository;
 using ContactManagerApp.Services;
@@ -16,6 +17,7 @@ builder.Host.UseSerilog((context, configuration) =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+/*builder.Services.AddScoped<IValidator<ContactDto>, ContactValidator>();*/
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<IContactService, ContactService>();
 
