@@ -1,5 +1,7 @@
 using ContactManagerApp.Data;
 using ContactManagerApp.Exceptions;
+using ContactManagerApp.Repository;
+using ContactManagerApp.Services;
 using ContactManagerApp.Validators;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
@@ -13,6 +15,9 @@ builder.Host.UseSerilog((context, configuration) =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddScoped<IContactService, ContactService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
