@@ -19,13 +19,13 @@ public class ContactController: ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<ContactDto>>> GetAllContactsPagedAsync(
+    public async Task<ActionResult<PagedResult<ContactDto>>> GetAllPagedAsync(
         [FromQuery] PaginationRequest request)
     {
         _logger.LogInformation("Retrieving paged announcements: Page {PageNumber}, Size {PageSize}", 
             request.PageNumber, request.PageSize);
         
-        var contacts = await _contactService.GetContactsPagedAsync(request);
+        var contacts = await _contactService.GetPagedAsync(request);
         
         _logger.LogInformation("Successfully retrieved {TotalCount} contacts", contacts.TotalCount);
         
@@ -33,14 +33,26 @@ public class ContactController: ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateContactAsync([FromBody]ContactDto contactDto)
+    public async Task<IActionResult> CreateAsync([FromBody]ContactDto contactDto)
     {
         _logger.LogInformation("Creating a new contact with name {Name}",  contactDto.Name);
         
-        await _contactService.CreateContactAsync(contactDto);
+        await _contactService.CreateAsync(contactDto);
         
         _logger.LogInformation("Successfully created a new contact with name {Name}",  contactDto.Name);
         
         return Ok("Contact created");
+    }
+
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> UpdateAsync([FromRoute] int id, [FromBody] ContactDto contactDto)
+    {
+        _logger.LogInformation("Updating a contact with name {Name}",  contactDto.Name);
+        
+        await _contactService.UpdateAsync(id, contactDto);
+        
+        _logger.LogInformation("Successfully updated a contact with name {Name}", contactDto.Name);
+        
+        return Ok("Contact updated");
     }
 }

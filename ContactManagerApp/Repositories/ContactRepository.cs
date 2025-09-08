@@ -6,8 +6,9 @@ namespace ContactManagerApp.Repository;
 
 public interface IContactRepository
 {
-    Task<PagedResult<Contact>> GetContactsPagedAsync(PaginationRequest request);
-    Task CreateContactAsync(Contact contact);
+    Task<PagedResult<Contact>> GetPagedAsync(PaginationRequest request);
+    Task<Contact?> GetByIdTracked(int id);
+    Task CreateAsync(Contact contact);
     
     Task SaveChangesAsync();
     
@@ -22,7 +23,7 @@ public class ContactRepository: IContactRepository
         _context = context;
     }
 
-    public async Task<PagedResult<Contact>> GetContactsPagedAsync(PaginationRequest request)
+    public async Task<PagedResult<Contact>> GetPagedAsync(PaginationRequest request)
     {
         var totalCount = await _context.Contacts.CountAsync();
 
@@ -42,7 +43,14 @@ public class ContactRepository: IContactRepository
         };
     }
 
-    public async Task CreateContactAsync(Contact contact)
+    public async Task<Contact?> GetByIdTracked(int id)
+    {
+        var contact = await _context.Contacts.FirstOrDefaultAsync(contact => contact.Id == id);
+        
+        return contact;
+    }
+
+    public async Task CreateAsync(Contact contact)
     {
         await _context.Contacts.AddAsync(contact);
     }

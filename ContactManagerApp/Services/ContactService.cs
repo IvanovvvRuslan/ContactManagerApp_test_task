@@ -1,4 +1,5 @@
 ﻿using ContactManagerApp.DTO;
+using ContactManagerApp.Exceptions;
 using ContactManagerApp.Models;
 using ContactManagerApp.Repository;
 using Mapster;
@@ -7,8 +8,10 @@ namespace ContactManagerApp.Services;
 
 public interface IContactService
 {
-    Task<PagedResult<ContactDto>> GetContactsPagedAsync(PaginationRequest request);
-    Task CreateContactAsync(ContactDto contactDto);
+    Task<PagedResult<ContactDto>> GetPagedAsync(PaginationRequest request);
+    Task CreateAsync(ContactDto contactDto);
+    Task UpdateAsync(int id, ContactDto contactDto);
+    
 }
 
 public class ContactService:  IContactService
@@ -22,12 +25,12 @@ public class ContactService:  IContactService
         _logger = logger;
     }
 
-    public async Task<PagedResult<ContactDto>> GetContactsPagedAsync(PaginationRequest request)
+    public async Task<PagedResult<ContactDto>> GetPagedAsync(PaginationRequest request)
     {
         _logger.LogDebug("Starting GetPagedAsync: Page {PageNumber}, Size {PageSize}", 
             request.PageNumber, request.PageSize);
         
-        var pagedResult = await _repository.GetContactsPagedAsync(request);
+        var pagedResult = await _repository.GetPagedAsync(request);
         
         _logger.LogDebug("Repository returned {ItemCount} contacts out of {TotalCount} total", 
             pagedResult.Items.Count(), pagedResult.TotalCount);
@@ -46,7 +49,7 @@ public class ContactService:  IContactService
         return result;
     }
 
-    public async Task CreateContactAsync(ContactDto contactDto)
+    public async Task CreateAsync(ContactDto contactDto)
     {
         _logger.LogDebug("Starting CreateAsync for contact with name: '{Name}'", 
             contactDto.Name);
@@ -60,10 +63,34 @@ public class ContactService:  IContactService
             Salary = contactDto.Salary
         };
         
-        await _repository.CreateContactAsync(newContact);
+        await _repository.CreateAsync(newContact);
         await _repository.SaveChangesAsync();
 
         _logger.LogInformation("Successfully created contact with Id {Id} and Name {Name}", 
             newContact.Id, newContact.Name);
+    }
+
+    public async Task UpdateAsync(int id, ContactDto contactDto)
+    {
+        _logger.LogDebug("Starting UpdateAsync for contact with Id {Id}", id);
+
+        var oldContact = await _repository.GetByIdTracked(id);
+
+        if (oldContact == null)
+            throw new NotFoundException("Contact not found");
+        
+        _logger.LogDebug("Updating contact with Id {Id}", id);
+        
+        oldContact.Name = contactDto.Name;
+        oldContact.BirthDate = contactDto.BirthDate;
+        oldContact.IsMarried = contactDto.IsMarried;
+        oldContact.PhoneNumber = contactDto.PhoneNumber;
+        oldContact.Salary = contactDto.Salary;
+        
+        _logger.LogDebug("Successfully updated contact with Id {Id}", id);
+        
+        await _repository.SaveChangesAsync();
+        
+        _logger.LogInformation("Successfully updated contact with Id {Id}", id);
     }
 }
