@@ -1,4 +1,4 @@
-@model PagedResult<ContactManagerApp.DTO.ContactDto>
+@model IEnumerable<ContactManagerApp.DTO.ContactDto>
 
 @{
     ViewData["Title"] = "Contacts";
@@ -18,7 +18,7 @@
     </tr>
     </thead>
     <tbody>
-    @foreach (var contact in Model.Items)
+    @foreach (var contact in Model)
     {
         <tr>
             <td>@contact.Name</td>
@@ -37,21 +37,8 @@
     </tbody>
 </table>
 
-<div style="margin-top:20px;">
-    @if (Model.PageNumber > 1)
-    {
-        <a asp-action="Index" asp-route-PageNumber="@(Model.PageNumber - 1)" asp-route-PageSize="@Model.PageSize">Previous</a>
-    }
-
-    <span> Page @Model.PageNumber of @Model.TotalPages </span>
-
-    @if (Model.PageNumber < Model.TotalPages)
-    {
-        <a asp-action="Index" asp-route-PageNumber="@(Model.PageNumber + 1)" asp-route-PageSize="@Model.PageSize">Next</a>
-    }
-</div>
-
 <div style="margin-top:10px;">
     <a asp-action="Create">Create New Contact</a>
     <a asp-action="Upload" class="btn btn-secondary">Upload CSV</a>
+    <a asp-action="Paginated" class="btn btn-link">View Paginated</a>
 </div>

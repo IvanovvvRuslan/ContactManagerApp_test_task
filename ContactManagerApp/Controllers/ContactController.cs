@@ -22,7 +22,18 @@ public class ContactController: Controller
         _csvImportService = csvImportService;
     }
 
-   public async Task<IActionResult> Index(PaginationRequest request)
+   public async Task<IActionResult> Index()
+    {
+        _logger.LogInformation("Retrieving all contacts");
+        
+        var contacts = await _contactService.GetAllAsync();
+        
+        _logger.LogInformation("Successfully retrieved {TotalCount} contacts", contacts.Count());
+        
+        return View(contacts);
+    }
+   
+    public async Task<IActionResult> Paginated(PaginationRequest request)
     {
         _logger.LogInformation("Retrieving paged contacts: Page {PageNumber}, Size {PageSize}", 
             request.PageNumber, request.PageSize);
@@ -30,17 +41,6 @@ public class ContactController: Controller
         var contacts = await _contactService.GetPagedAsync(request);
         
         _logger.LogInformation("Successfully retrieved {TotalCount} contacts", contacts.TotalCount);
-        
-        return View(contacts);
-    }
-   
-    public async Task<IActionResult> All()
-    {
-        _logger.LogInformation("Retrieving all contacts");
-        
-        var contacts = await _contactService.GetAllAsync();
-        
-        _logger.LogInformation("Successfully retrieved {TotalCount} contacts", contacts.Count());
         
         return View(contacts);
     }
