@@ -11,12 +11,15 @@ public class ContactController: Controller
     private readonly IContactService _contactService;
     private readonly ILogger<ContactController> _logger;
     private readonly IValidator<ContactDto> _validator;
+    private readonly ICsvImportService _csvImportService;
 
-    public ContactController(IContactService contactService, ILogger<ContactController> logger, IValidator<ContactDto> validator)
+    public ContactController(IContactService contactService, ILogger<ContactController> logger, IValidator<ContactDto> validator, 
+        ICsvImportService csvImportService)
     {
         _contactService = contactService;
         _logger = logger;
         _validator = validator;
+        _csvImportService = csvImportService;
     }
 
    public async Task<IActionResult> Index(PaginationRequest request)
@@ -101,5 +104,40 @@ public class ContactController: Controller
         _logger.LogInformation("Successfully deleted a contact with id {Id}", id);
         
         return RedirectToAction(nameof(Index));
+    }
+
+    public IActionResult Upload()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Upload(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            TempData["Error"] = "No file selected.";
+            return View();
+        }
+        
+        var importResult = await _csvImportService.ImportContactsFromCsvAsync(file);
+
+        if (!importResult.Success)
+        {
+            ViewBag.Error = "Some row failed validation.";
+            ViewBag.ValidationErrors = string.Join("<br/>", importResult.Errors);
+            return View();
+        }
+
+        ViewBag.Success = "Contacts imported successfully! " +
+                          $"<a href='{Url.Action("Index", "Contact")}'>Back to Home Page</a>";
+
+        return View();
+    }
+    
+    public IActionResult Privacy()
+    {
+        return View();
     }
 }

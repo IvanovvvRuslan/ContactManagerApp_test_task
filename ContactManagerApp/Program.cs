@@ -20,6 +20,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IValidator<ContactDto>, ContactValidator>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<IContactService, ContactService>();
+builder.Services.AddScoped<ICsvImportService, CsvImportService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 

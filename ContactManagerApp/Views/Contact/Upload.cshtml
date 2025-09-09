@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Upload CSV";
+}
+
+<h2>Upload CSV</h2>
+
+@if (ViewBag.Success != null)
+{
+    <div class="alert alert-success">
+        @Html.Raw(ViewBag.Success)
+    </div>
+}
+
+@if (ViewBag.ValidationErrors != null)
+{
+    <div class="alert alert-danger">
+        <p>@ViewBag.Error</p>
+        @if (ViewBag.ValidationErrors != null)
+        {
+            <div>@Html.Raw(ViewBag.ValidationErrors)</div>
+        }
+    </div>
+}
+
+
+<form asp-action="Upload" asp-controller="Contact" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="file">Choose CSV file:</label>
+        <input type="file" name="file" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Upload</button>
+    <button type="button" class="btn btn-secondary mt-2"
+            onclick="window.location.href='@Url.Action("Index","Contact")'">
+        Cancel
+    </button>
+</form>
