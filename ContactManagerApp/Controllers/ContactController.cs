@@ -24,12 +24,23 @@ public class ContactController: Controller
 
    public async Task<IActionResult> Index(PaginationRequest request)
     {
-        _logger.LogInformation("Retrieving paged announcements: Page {PageNumber}, Size {PageSize}", 
+        _logger.LogInformation("Retrieving paged contacts: Page {PageNumber}, Size {PageSize}", 
             request.PageNumber, request.PageSize);
         
         var contacts = await _contactService.GetPagedAsync(request);
         
         _logger.LogInformation("Successfully retrieved {TotalCount} contacts", contacts.TotalCount);
+        
+        return View(contacts);
+    }
+   
+    public async Task<IActionResult> All()
+    {
+        _logger.LogInformation("Retrieving all contacts");
+        
+        var contacts = await _contactService.GetAllAsync();
+        
+        _logger.LogInformation("Successfully retrieved {TotalCount} contacts", contacts.Count());
         
         return View(contacts);
     }
@@ -125,7 +136,7 @@ public class ContactController: Controller
 
         if (!importResult.Success)
         {
-            ViewBag.Error = "Some row failed validation.";
+            ViewBag.Error = "Some row(s) failed validation.";
             ViewBag.ValidationErrors = string.Join("<br/>", importResult.Errors);
             return View();
         }

@@ -6,6 +6,7 @@ namespace ContactManagerApp.Repository;
 
 public interface IContactRepository
 {
+    Task<IEnumerable<Contact>> GetAllAsync();
     Task<PagedResult<Contact>> GetPagedAsync(PaginationRequest request);
     Task<Contact?> GetByIdAsync(int id);
     Task<Contact?> GetByIdTrackedAsync(int id);
@@ -22,6 +23,11 @@ public class ContactRepository: IContactRepository
     public ContactRepository(ApplicationDbContext context)
     {
         _context = context;
+    }
+
+    public async Task<IEnumerable<Contact>> GetAllAsync()
+    {
+        return await _context.Contacts.ToListAsync();
     }
 
     public async Task<PagedResult<Contact>> GetPagedAsync(PaginationRequest request)

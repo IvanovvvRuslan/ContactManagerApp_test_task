@@ -49,7 +49,17 @@ public class CsvImportService:  ICsvImportService
         using var csv = new CsvReader(reader, csvConfig);
         csv.Context.RegisterClassMap<ContactMap>();
 
-        var records = csv.GetRecords<ContactDto>().ToList();
+       List<ContactDto> records;
+        try
+        {
+            records = csv.GetRecords<ContactDto>().ToList();
+        }
+        catch (CsvHelperException ex)
+        {
+            result.Errors.Add($"CSV parsing error: {ex.Message}");
+            _logger.LogError(ex, "CSV parsing failed.");
+            return result;
+        }
 
         foreach (var contactDto in records)
         {

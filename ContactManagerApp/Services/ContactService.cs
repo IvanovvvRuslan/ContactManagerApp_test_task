@@ -8,6 +8,7 @@ namespace ContactManagerApp.Services;
 
 public interface IContactService
 {
+    Task<IEnumerable<ContactDto>> GetAllAsync();
     Task<PagedResult<ContactDto>> GetPagedAsync(PaginationRequest request);
     Task<ContactDto> GetByIdTrackedAsync(int id);
     Task CreateAsync(ContactDto contactDto);
@@ -24,6 +25,20 @@ public class ContactService:  IContactService
     {
         _repository = repository;
         _logger = logger;
+    }
+
+    public async Task<IEnumerable<ContactDto>> GetAllAsync()
+    {
+        _logger.LogInformation("Getting all contacts");
+        
+        var contacts = await _repository.GetAllAsync();
+        
+        _logger.LogDebug("Repository returned {ItemCount} contacts out of {TotalCount} total", 
+            contacts.Count());
+        
+        var contactsDto = contacts.Adapt<List<ContactDto>>();
+        
+        return contactsDto;
     }
 
     public async Task<PagedResult<ContactDto>> GetPagedAsync(PaginationRequest request)
