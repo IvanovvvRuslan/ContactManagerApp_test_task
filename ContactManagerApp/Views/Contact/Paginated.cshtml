@@ -6,7 +6,7 @@
 
 <h1>Contacts</h1>
 
-<table>
+<table id="contactsTable" class="table table-bordered table-striped">
     <thead>
     <tr>
         <th>Name</th>
@@ -27,9 +27,9 @@
             <td>@contact.PhoneNumber</td>
             <td>@contact.Salary.ToString("C")</td>
             <td>
-                <a asp-action="Edit" asp-route-id="@contact.Id">Edit</a> |
+                <a asp-action="Edit" asp-route-id="@contact.Id" class="btn btn-primary btn-sm">Edit</a>
                 <form asp-action="Delete" asp-route-id="@contact.Id" method="post" style="display:inline;">
-                    <button type="submit" onclick="return confirm('Are you sure?');">Delete</button>
+                    <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('Are you sure?');">Delete</button>
                 </form>
             </td>
         </tr>
@@ -52,7 +52,7 @@
 </div>
 
 <div style="margin-top:10px;">
-    <a asp-action="Create">Create New Contact</a>
+    <a asp-action="Create" class="btn btn-primary">Create New Contact</a>
     <a asp-action="Upload" class="btn btn-secondary">Upload CSV</a>
     <a asp-action="Index" class="btn btn-link">View All</a>
 </div>
