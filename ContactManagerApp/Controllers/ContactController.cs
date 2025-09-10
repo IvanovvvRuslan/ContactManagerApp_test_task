@@ -134,7 +134,6 @@ public class ContactController: Controller
         }
     }
 
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)

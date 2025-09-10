@@ -13,7 +13,6 @@ public interface IContactRepository
     Task CreateAsync(Contact contact);
     Task Delete (Contact contact);
     Task SaveChangesAsync();
-    
 }
 
 public class ContactRepository: IContactRepository

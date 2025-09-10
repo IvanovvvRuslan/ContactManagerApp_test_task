@@ -5,7 +5,6 @@ using ContactManagerApp.Repository;
 using ContactManagerApp.Services;
 using ContactManagerApp.Validators;
 using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -282,16 +281,6 @@ public class ContactManagerTests
         var field = nameof(Contact.Name);
         var newValue = "New Name";
         
-        /*var validator = Substitute.For<IValidator<ContactDto>>();
-        
-        validator
-    .ValidateAsync(Arg.Any<ContactDto>(), Arg.Any<CancellationToken>())
-    .Returns(Task.FromResult(new FluentValidation.Results.ValidationResult()));*/
-        
-        /*_validator
-            .ValidateAsync(Arg.Any<ContactDto>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new FluentValidation.Results.ValidationResult()));*/
-                    
         //Act
         await _service.UpdateFieldAsync(contact.Id, field,  newValue);
         
@@ -305,8 +294,11 @@ public class ContactManagerTests
     {
         //Arrange
         var contact = new Contact { Id = 1, BirthDate = new DateTime(2025, 1, 1) };
+       
         _repository.GetByIdTrackedAsync(contact.Id).Returns(contact);
+        
         var field = nameof(Contact.BirthDate);
+        
         var newValue = new DateTime(2020, 2,2).ToString();
         
         //Act
@@ -322,8 +314,11 @@ public class ContactManagerTests
     {
         //Arrange
         var contact = new Contact { Id = 1, IsMarried = false};
+        
         _repository.GetByIdTrackedAsync(contact.Id).Returns(contact);
+       
         var field = nameof(Contact.IsMarried);
+        
         var newValue = true.ToString();
         
         //Act
@@ -339,8 +334,11 @@ public class ContactManagerTests
     {
         //Arrange
         var contact = new Contact { Id = 1, PhoneNumber = "+380677777777" };
+        
         _repository.GetByIdTrackedAsync(contact.Id).Returns(contact);
+        
         var field = nameof(Contact.PhoneNumber);
+        
         var newValue = "+380505555555";
         
         //Act
@@ -356,8 +354,11 @@ public class ContactManagerTests
     {
         //Arrange
         var contact = new Contact { Id = 1, Salary = 7777.77m };
+        
         _repository.GetByIdTrackedAsync(contact.Id).Returns(contact);
+        
         var field = nameof(Contact.Salary);
+        
         var newValue = "5555.55";
         
         //Act

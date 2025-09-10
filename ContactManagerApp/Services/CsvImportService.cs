@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using ContactManagerApp.DTO;
-using ContactManagerApp.Mapping;
 using ContactManagerApp.Models;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -47,8 +46,7 @@ public class CsvImportService:  ICsvImportService
         };
 
         using var csv = new CsvReader(reader, csvConfig);
-        csv.Context.RegisterClassMap<ContactMap>();
-
+        
        List<ContactDto> records;
         try
         {
