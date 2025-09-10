@@ -29,3 +29,26 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+td input {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: none;
+    background: transparent;
+    font: inherit;
+    padding: 2px 4px;
+}
+
+td input:focus {
+    outline: 1px solid #007bff;
+/ background: #fff;
+}
+    
+#contactsTable th {
+    cursor: pointer;
+}
+
+#contactsTable th:hover {
+    background-color: #f0f0f0;
+}

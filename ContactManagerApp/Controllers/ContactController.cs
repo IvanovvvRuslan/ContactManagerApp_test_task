@@ -1,4 +1,5 @@
 ﻿using ContactManagerApp.DTO;
+using ContactManagerApp.Exceptions;
 using ContactManagerApp.Models;
 using ContactManagerApp.Services;
 using FluentValidation;
@@ -103,6 +104,36 @@ public class ContactController: Controller
         
         return RedirectToAction(nameof(Index));
     }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateField(int id, string fieldName, string fieldValue)
+    {
+        try
+        {
+            _logger.LogInformation("Updating field {FieldName} for contact {Id}", fieldName, id);
+
+            await _contactService.UpdateFieldAsync(id, fieldName, fieldValue);
+
+            return Json(new { success = true });
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Contact {Id} not found", id);
+            return Json(new { success = false, message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            var errorMessage = string.Join("; ", ex.Errors.Select(x => x.ErrorMessage));
+            return Json(new { success = false, message = errorMessage });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating field {FieldName} for contact {Id}", fieldName, id);
+            return Json(new { success = false, message = "Unexpected error" });
+        }
+    }
+
 
     [HttpPost]
     [ValidateAntiForgeryToken]

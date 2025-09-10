@@ -1,3 +1,4 @@
+@using System.Globalization
 @model IEnumerable<ContactManagerApp.DTO.ContactDto>
 
 @{
@@ -23,22 +24,26 @@
     @foreach (var contact in Model)
     {
         <tr>
-            <td contenteditable="true" 
-                onblur="updateField(@contact.Id, 'Name', this.innerText)">
-                @contact.Name
+            <td>
+                <input type="text" value="@contact.Name" 
+                       onchange="updateField(@contact.Id, 'Name', this.value)" />
             </td>
-            <td>@contact.BirthDate.ToShortDateString()</td>
-            <td contenteditable="true" 
-                onblur="updateField(@contact.Id, 'IsMarried', this.innerText)">
-                @(contact.IsMarried ? "Yes" : "No")
+            <td>
+                <input type="date" value="@contact.BirthDate.ToString("yyyy-MM-dd")"
+                       onchange="updateField(@contact.Id, 'BirthDate', this.value)" />
             </td>
-            <td contenteditable="true" 
-                onblur="updateField(@contact.Id, 'PhoneNumber', this.innerText)">
-                @contact.PhoneNumber
+            <td>
+                <input type="checkbox" @(contact.IsMarried ? "checked" : "") 
+                       onchange="updateField(@contact.Id, 'IsMarried', this.checked)" />
             </td>
-            <td contenteditable="true" 
-                onblur="updateField(@contact.Id, 'Salary', this.innerText)">
-                @contact.Salary
+            <td>
+                <input type="text" value="@contact.PhoneNumber" 
+                       onchange="updateField(@contact.Id, 'PhoneNumber', this.value)" />
+            </td>
+            <td>
+            <input type="text" value="@contact.Salary.ToString(CultureInfo.InvariantCulture)" 
+                   onchange="formatSalaryInput(this); updateField(@contact.Id, 'Salary', this.value)"
+                   style="width:80px; text-align:right;" />
             </td>
             <td>
                 <button class="btn btn-danger btn-sm" onclick="deleteContact(@contact.Id)">
@@ -59,35 +64,69 @@
 
 @section Scripts {
 <script>
+    
 function getAntiForgeryToken() {
     const el = document.querySelector('input[name="__RequestVerificationToken"]');
     return el ? el.value : '';
 }
-// 🔍 фильтрация
+
 document.getElementById("searchBox").addEventListener("keyup", function() {
     let filter = this.value.toLowerCase();
     let rows = document.querySelectorAll("#contactsTable tbody tr");
 
     rows.forEach(row => {
-        let text = row.innerText.toLowerCase();
-        row.style.display = text.includes(filter) ? "" : "none";
+        let cells = Array.from(row.cells);
+        let match = cells.some(cell => {
+            let input = cell.querySelector("input");
+            let value = "";
+            if (input) {
+                if (input.type === "checkbox") value = input.checked ? "true" : "false";
+                else value = input.value.trim();
+            } else {
+                value = cell.innerText.trim();
+            }
+            return value.toLowerCase().includes(filter);
+        });
+
+        row.style.display = match ? "" : "none";
     });
 });
 
-// ⬆⬇ сортировка по колонкам
+function formatSalaryInput(input) {
+    let value = input.value.trim();
+
+    if (value === "") return;
+
+    let num = parseFloat(value.replace(',', '.'));
+    if (!isNaN(num)) {
+        input.value = num.toFixed(2);
+    }
+}
+
 function sortTable(colIndex) {
     let table = document.getElementById("contactsTable");
-    let rows = Array.from(table.rows).slice(1); // исключаем заголовок
+    let rows = Array.from(table.rows).slice(1);
     let asc = table.getAttribute("data-sort") !== "asc";
 
     rows.sort((a, b) => {
-        let A = a.cells[colIndex].innerText.trim();
-        let B = b.cells[colIndex].innerText.trim();
+        let getCellValue = (cell) => {
+            let input = cell.querySelector("input");
+            if (input) {
+                if (input.type === "checkbox") return input.checked ? "1" : "0";
+                return input.value.trim();
+            }
+            return cell.innerText.trim();
+        };
 
-        // если число — сравниваем как число
-        if (!isNaN(A) && !isNaN(B)) {
-            return asc ? A - B : B - A;
+        let A = getCellValue(a.cells[colIndex]);
+        let B = getCellValue(b.cells[colIndex]);
+
+        let numA = parseFloat(A.replace(',', '.'));
+        let numB = parseFloat(B.replace(',', '.'));
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return asc ? numA - numB : numB - numA;
         }
+
         return asc ? A.localeCompare(B) : B.localeCompare(A);
     });
 
@@ -95,7 +134,7 @@ function sortTable(colIndex) {
     table.setAttribute("data-sort", asc ? "asc" : "desc");
 }
 
-// ✏️ обновление записи (AJAX)
+
 function updateField(id, fieldName, fieldValue) {
     fetch('/Contact/UpdateField', {
         method: 'POST',
@@ -104,12 +143,16 @@ function updateField(id, fieldName, fieldValue) {
             'RequestVerificationToken': getAntiForgeryToken()
         },
         body: `id=${id}&fieldName=${encodeURIComponent(fieldName)}&fieldValue=${encodeURIComponent(fieldValue)}`
-    }).then(res => {
-        if (!res.ok) alert("Error updating field!");
-    });
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert("Validation error: " + data.message);
+            }
+        })
+        .catch(() => alert("Unexpected error while updating!"));
 }
 
-// ❌ удаление записи (AJAX)
 function deleteContact(id) {
     if (!confirm("Are you sure you want to delete this contact?")) return;
     fetch(`/Contact/Delete/${id}`, {

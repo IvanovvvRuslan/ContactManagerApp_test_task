@@ -18,6 +18,7 @@ public class ContactValidator : AbstractValidator<ContactDto>
             .Matches(@"^\+?[0-9]{7,15}$")
             .WithMessage("Phone number must contain only digits and optional leading + (7–15 chars)");
         
-        RuleFor(x => x.Salary).GreaterThan(0).WithMessage("Salary must be greater than 0");
+        RuleFor(x => x.Salary).NotEmpty().WithMessage("Salary is required")
+            .GreaterThan(0).WithMessage("Salary must be greater than 0");
     }
 }

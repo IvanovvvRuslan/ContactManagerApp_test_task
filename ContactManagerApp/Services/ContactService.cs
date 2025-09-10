@@ -1,7 +1,9 @@
-﻿using ContactManagerApp.DTO;
+﻿using System.Globalization;
+using ContactManagerApp.DTO;
 using ContactManagerApp.Exceptions;
 using ContactManagerApp.Models;
 using ContactManagerApp.Repository;
+using FluentValidation;
 using Mapster;
 
 namespace ContactManagerApp.Services;
@@ -13,6 +15,7 @@ public interface IContactService
     Task<ContactDto> GetByIdTrackedAsync(int id);
     Task CreateAsync(ContactDto contactDto);
     Task UpdateAsync(int id, ContactDto contactDto);
+    Task UpdateFieldAsync(int id, string fieldName, string fieldValue);
     Task DeleteAsync(int id);
 }
 
@@ -20,11 +23,13 @@ public class ContactService:  IContactService
 {
     private readonly IContactRepository _repository;
     private readonly ILogger<ContactService> _logger;
+    private readonly IValidator<ContactDto> _validator;
 
-    public ContactService(IContactRepository repository, ILogger<ContactService> logger)
+    public ContactService(IContactRepository repository, ILogger<ContactService> logger, IValidator<ContactDto> validator)
     {
         _repository = repository;
         _logger = logger;
+        _validator = validator;
     }
 
     public async Task<IEnumerable<ContactDto>> GetAllAsync()
@@ -124,6 +129,73 @@ public class ContactService:  IContactService
         await _repository.SaveChangesAsync();
         
         _logger.LogInformation("Successfully updated contact with Id {Id}", id);
+    }
+
+    public async Task UpdateFieldAsync(int id, string fieldName, string fieldValue)
+    {
+        _logger.LogDebug("Starting UpdateFieldAsync for Id {Id}, field {FieldName}", id, fieldName);
+        
+        var contact = await _repository.GetByIdTrackedAsync(id);
+        
+        if (contact == null)
+            throw new NotFoundException("Contact not found");
+
+        var dto = new ContactDto();
+        string[] propertiesToValidate = new string[] { };
+        
+        switch (fieldName)
+        {
+            case "Name":
+                dto.Name = fieldValue;
+                propertiesToValidate = new[] { nameof(dto.Name) };
+                break;
+            
+            case "BirthDate":
+                if (!DateTime.TryParse(fieldValue, out var birthDate))
+                    throw new ArgumentException("Invalid date format");
+
+                dto.BirthDate = birthDate;
+                propertiesToValidate = new[] { nameof(dto.BirthDate) };
+                break;
+
+            case "IsMarried":
+                contact.IsMarried = bool.Parse(fieldValue);
+                break;
+
+            case "PhoneNumber":
+                dto.PhoneNumber = fieldValue;
+                propertiesToValidate = new[] { nameof(dto.PhoneNumber) };
+                break;
+            
+            case "Salary":
+                if (!decimal.TryParse(fieldValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var salary))
+                    throw new ArgumentException("Invalid decimal format");
+                dto.Salary = salary;
+                propertiesToValidate = new[] { nameof(dto.Salary) };
+                break;
+            
+            default:
+                throw new ArgumentException($"Unknown field: {fieldName}");
+        }
+
+        if (propertiesToValidate.Length > 0)
+        {
+            var validationResult = await _validator.ValidateAsync(dto, opt => opt.IncludeProperties(propertiesToValidate));
+            if (!validationResult.IsValid)
+                throw new ValidationException(validationResult.Errors);
+        }
+
+        switch (fieldName)
+        {
+            case "Name": contact.Name = fieldValue; break;
+            case "BirthDate": contact.BirthDate = dto.BirthDate; break;
+            case "PhoneNumber": contact.PhoneNumber = dto.PhoneNumber; break;
+            case "Salary": contact.Salary = dto.Salary; break;
+        }
+        
+        await _repository.SaveChangesAsync();
+
+        _logger.LogInformation("Successfully updated field {FieldName} for contact {Id}", fieldName, id);
     }
 
     public async Task DeleteAsync(int id)
